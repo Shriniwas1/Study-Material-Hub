@@ -72,3 +72,17 @@ Start the development server:
 ```Bash
 npm run dev
 ```
+### UI Snippets 
+---
+
+<img width="1918" height="962" alt="image" src="https://github.com/user-attachments/assets/d1d20263-385f-4725-801e-332ae7d26e2d" />
+
+---
+
+<img width="1918" height="972" alt="image" src="https://github.com/user-attachments/assets/700f61ae-f9ff-42e4-bc58-970cfc9e4aee" />
+
+---
+
+<img width="1918" height="966" alt="image" src="https://github.com/user-attachments/assets/f0f5f0b3-c128-4cca-bd96-6acca2110f94" />
+
+---
