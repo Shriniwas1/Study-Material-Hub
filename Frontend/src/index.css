@@ -1,0 +1,54 @@
+/* 1. External Fonts */
+@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700&family=Inter:wght@400;500;600&display=swap');
+
+/* 2. Variables Definition */
+:root {
+  /* Colors defined in HSL format for better transparency control */
+  --background: 43 10% 98%;
+  --foreground: 216 33% 20%;
+  --primary: 238 66% 48%;
+  --primary-foreground: 0 0% 100%;
+  --secondary: 210 40% 96%;
+  --secondary-foreground: 222 47% 11%;
+  --accent: 230 100% 93%;
+  --accent-foreground: 238 72% 34%;
+  --muted: 210 40% 96%;
+  --muted-foreground: 215 16% 47%;
+  --card: 0 0% 100%;
+  --card-foreground: 216 33% 20%;
+  --border: 214 32% 91%;
+  --input: 214 32% 91%;
+  --ring: 238 66% 48%;
+  --radius: 0.75rem;
+}
+
+/* 3. Base Styles */
+* {
+  box-sizing: border-box;
+  /* Standard CSS equivalent to @apply border-border */
+  border-color: hsl(var(--border));
+}
+
+body {
+  margin: 0;
+  /* Standard CSS equivalent to @apply bg-background text-foreground */
+  background-color: hsl(var(--background));
+  color: hsl(var(--foreground));
+  font-family: 'Inter', sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+h1, h2, h3, h4, h5, h6 {
+  font-family: 'Outfit', sans-serif;
+  letter-spacing: -0.02em;
+  margin-top: 0;
+}
+
+/* 4. Utility Classes */
+.glass {
+  /* Standard CSS equivalent to backdrop-blur-md bg-background/80 */
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  background-color: hsla(var(--background), 0.8);
+}

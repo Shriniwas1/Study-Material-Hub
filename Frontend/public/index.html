@@ -1,0 +1,85 @@
+<!doctype html>
+<html lang="en">
+    <head>
+        <meta charset="utf-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1" />
+        <meta name="theme-color" content="#000000" />
+        <meta name="description" content="Fullstack web application" />
+        <title>Fullstack App</title>
+    </head>
+    <body>
+        <noscript>JavaScript is required to run this application.</noscript>
+        <div id="root"></div>
+
+        <script>
+            !(function (t, e) {
+                var o, n, p, r;
+                e.__SV ||
+                    ((window.posthog = e),
+                    (e._i = []),
+                    (e.init = function (i, s, a) {
+                        function g(t, e) {
+                            var o = e.split(".");
+                            o.length === 2 &&
+                                ((t = t[o[0]]), (e = o[1]));
+                            t[e] = function () {
+                                t.push(
+                                    [e].concat(
+                                        Array.prototype.slice.call(arguments),
+                                    ),
+                                );
+                            };
+                        }
+
+                        p = t.createElement("script");
+                        p.type = "text/javascript";
+                        p.crossOrigin = "anonymous";
+                        p.async = true;
+                        p.src =
+                            s.api_host.replace(
+                                ".i.posthog.com",
+                                "-assets.i.posthog.com",
+                            ) + "/static/array.js";
+
+                        r = t.getElementsByTagName("script")[0];
+                        r.parentNode.insertBefore(p, r);
+
+                        var u = e;
+                        a !== undefined ? (u = e[a] = []) : (a = "posthog");
+
+                        u.people = u.people || [];
+                        u.toString = function (t) {
+                            var e = "posthog";
+                            a !== "posthog" && (e += "." + a);
+                            t || (e += " (stub)");
+                            return e;
+                        };
+
+                        u.people.toString = function () {
+                            return u.toString(true) + ".people (stub)";
+                        };
+
+                        o =
+                            "init capture identify reset alias on off get_distinct_id get_session_id startSessionRecording stopSessionRecording".split(
+                                " ",
+                            );
+
+                        for (n = 0; n < o.length; n++) {
+                            g(u, o[n]);
+                        }
+
+                        e._i.push([i, s, a]);
+                    }),
+                    (e.__SV = 1));
+            })(document, window.posthog || []);
+
+            posthog.init(
+                "phc_xAvL2Iq4tFmANRE7kzbKwaSqp1HJjN7x48s3vr0CMjs",
+                {
+                    api_host: "https://us.i.posthog.com",
+                    person_profiles: "identified_only",
+                },
+            );
+        </script>
+    </body>
+</html>
