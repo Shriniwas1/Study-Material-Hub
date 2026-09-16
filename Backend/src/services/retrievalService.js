@@ -11,6 +11,7 @@ export const retrieveSessionContext = async ({ userId, studySessionId, queryText
     userId,
     studySessionId,
     queryEmbedding,
+    queryText,
     topK
   });
 

@@ -20,7 +20,7 @@ export const cosineSimilarity = (vecA, vecB) => {
   return dotProduct / (Math.sqrt(normA) * Math.sqrt(normB));
 };
 
-export const searchVectorStore = async ({ userId, studySessionId, queryEmbedding, topK = 5 }) => {
+export const searchVectorStore = async ({ userId, studySessionId, queryEmbedding, queryText = "", topK = 5 }) => {
   const isProduction = process.env.NODE_ENV === "production";
   const vectorIndexName = process.env.VECTOR_INDEX_NAME || "vector_index";
 
@@ -75,8 +75,23 @@ export const searchVectorStore = async ({ userId, studySessionId, queryEmbedding
     return [];
   }
 
+  const queryLower = queryText.toLowerCase();
+  const keywords = queryLower
+    .replace(/[^a-z0-9\s]/g, "")
+    .split(/\s+/)
+    .filter(w => w.length >= 3 && !["what", "when", "where", "which", "with", "from", "that", "this", "about", "explain"].includes(w));
+
   const scored = sessionChunks.map(chunk => {
-    const score = cosineSimilarity(queryEmbedding, chunk.embedding);
+    let score = cosineSimilarity(queryEmbedding, chunk.embedding);
+    const textLower = (chunk.chunkText || "").toLowerCase();
+    
+    // Keyword match boost
+    for (const kw of keywords) {
+      if (textLower.includes(kw)) {
+        score += 0.35;
+      }
+    }
+
     return {
       chunkId: chunk._id.toString(),
       documentId: chunk.documentId.toString(),
