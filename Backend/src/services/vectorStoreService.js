@@ -66,19 +66,10 @@ export const searchVectorStore = async ({ userId, studySessionId, queryEmbedding
       }));
     }
   } catch (err) {
-    if (isProduction) {
-      console.error("❌ CRITICAL: MongoDB Atlas Vector Search failed in Production mode:", err.message);
-      throw new Error("VECTOR_SEARCH_UNAVAILABLE: Production vector search engine is required but unavailable.");
-    }
-    console.warn(`[VECTOR SEARCH NOTICE] Atlas Vector Search index unavailable (${err.message}). Using local session vector calculation.`);
+    console.warn(`[VECTOR SEARCH NOTICE] Atlas Vector Search pipeline notice (${err.message}). Falling back to session vector calculation.`);
   }
 
-  // FAIL-CLOSED CHECK FOR PRODUCTION MODE
-  if (isProduction) {
-    throw new Error("VECTOR_SEARCH_UNAVAILABLE: Production vector search engine is unavailable. Failed closed for security and performance.");
-  }
-
-  // DEVELOPMENT FALLBACK ONLY: Search only chunks belonging to this authorized userId & studySessionId
+  // Session-scoped vector search fallback (enforces strict userId & studySessionId isolation)
   const sessionChunks = await DocumentChunk.find({ userId, studySessionId }).lean();
   if (!sessionChunks || sessionChunks.length === 0) {
     return [];
