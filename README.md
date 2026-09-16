@@ -58,7 +58,8 @@ Create a `.env` file inside the `Backend/` directory:
 ```env
 PORT=5000
 NODE_ENV=development
-MONGO_URI=mongodb+srv://<username>:<password>@cluster.mongodb.net/study_hub
+MONGO_URI=mongodb+srv://<username>:<password>@cluster.mongodb.net/?appName=Cluster0
+DB_NAME=study_hub
 JWT_SECRET=your_jwt_secret_key_here
 
 # Cloudinary Storage
@@ -70,6 +71,7 @@ CLOUDINARY_API_SECRET=your_secret
 GEMINI_API_KEY=your_gemini_api_key_here
 EMBEDDING_PROVIDER=gemini
 EMBEDDING_MODEL=text-embedding-004
+LLM_MODEL=gemini-1.5-flash
 
 # Resource Quotas & Security
 MAX_PDF_SIZE_MB=15
