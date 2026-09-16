@@ -53,23 +53,21 @@ export const Upload = ({ user }) => {
       )
 
       // 2. Prepare Cloudinary Upload Data
+      // IMPORTANT: Only include params that were signed by the backend.
+      // Any extra field not in the signature causes Cloudinary to return 401.
       const uploadData = new FormData()
       uploadData.append("file", file)
       uploadData.append("api_key", sig.api_key)
       uploadData.append("timestamp", sig.timestamp)
       uploadData.append("signature", sig.signature)
       uploadData.append("folder", "study-materials")
-      
-      /**
-       * CRITICAL FIX: Force delivery type to 'upload' (public).
-       * This ensures the file is accessible by the browser viewer without 401 errors.
-       */
-      uploadData.append("type", "upload") 
+      // NOTE: Do NOT append 'type' here — it was not included in the backend signature.
+      // 'upload' (public) is Cloudinary's default delivery type.
 
       // 3. Upload directly to Cloudinary
-      // We use 'auto' so Cloudinary detects it's a PDF and handles headers correctly
+      // Use 'raw/upload' for PDFs — matches the resource_type Cloudinary assigns to non-image files.
       const { data: cloudRes } = await axios.post(
-        `https://api.cloudinary.com/v1_1/${sig.cloud_name}/auto/upload`,
+        `https://api.cloudinary.com/v1_1/${sig.cloud_name}/raw/upload`,
         uploadData
       )
 

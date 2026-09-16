@@ -6,6 +6,8 @@ import { Register } from "./pages/Register"
 import { Dashboard } from "./pages/Dashboard"
 import { Upload } from "./pages/Upload"
 import { MaterialDetail } from "./pages/MaterialDetail"
+import { StudySessionsList } from "./pages/StudySessionsList"
+import { AIStudyRoom } from "./pages/AIStudyRoom"
 import { Toaster } from "./components/ui/sonner"
 
 export const App = () => {
@@ -53,6 +55,10 @@ export const App = () => {
           <Route path="/upload" element={<Protected><Upload user={user} /></Protected>} />
           <Route path="/material/:id" element={<Protected><MaterialDetail user={user} /></Protected>} />
           
+          {/* AI Test Preparation Routes */}
+          <Route path="/ai-study" element={<Protected><StudySessionsList user={user} setUser={setUser} /></Protected>} />
+          <Route path="/ai-study/:sessionId" element={<Protected><AIStudyRoom user={user} setUser={setUser} /></Protected>} />
+
           <Route path="/" element={<Navigate to={user ? "/dashboard" : "/login"} replace />} />
         </Routes>
       </BrowserRouter>
