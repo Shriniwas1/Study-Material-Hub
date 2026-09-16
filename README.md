@@ -1,12 +1,12 @@
-# 🎓 Study Material Hub & AI Test Prep Platform
+# Study Material Hub & AI Test Prep Platform
 
 A full-stack, enterprise-grade **AI-Powered Test Preparation and Document Intelligence Platform** built using the MERN stack. Features a session-isolated **Retrieval-Augmented Generation (RAG)** architecture, asynchronous PDF processing pipeline, vector search, interactive AI study room, security hardening, and global study material sharing.
 
 ---
 
-## 🌟 Key Features
+## Key Features
 
-### 🧠 1. AI Study Room & RAG Engine
+### 1. AI Study Room & RAG Engine
 - **Session-Isolated Vector Ingestion**: Upload PDFs to dedicated study sessions. Documents are asynchronously parsed, page-chunked with SHA-256 deduplication, and indexed into vector embeddings.
 - **Interactive AI Modes**:
   - **Ask**: Grounded QA answering questions strictly using uploaded study session PDFs.
@@ -15,12 +15,12 @@ A full-stack, enterprise-grade **AI-Powered Test Preparation and Document Intell
   - **Test Me**: Interactive Multiple Choice Quiz (MCQ) generation with real-time scoring.
 - **Backend-Derived Citations**: Clickable citation badges linking directly back to original PDF source documents and page numbers.
 
-### ⚡ 2. Asynchronous Document Processing Pipeline
+### 2. Asynchronous Document Processing Pipeline
 - **HTTP 202 Accepted Async Workflow**: Uploads return immediately while background jobs extract text via `PDFParse` and generate embeddings via Google Gemini / OpenAI with local fallback.
 - **Cloudinary Basic Auth Proxy**: Bypasses raw resource access restrictions through authenticated backend streaming (`GET /api/materials/:id/pdf`).
 - **Auto-Recovery**: Automatic background re-indexing and retry fallback for failed document processing.
 
-### 🔒 3. Enterprise Security & Quota Hardening
+### 3. Enterprise Security & Quota Hardening
 - **Bcrypt Hashing & JWT Auth**: Secure password hashing with dual Bearer header & URL query token support for PDF previewing.
 - **BOLA / IDOR Defense**: Strict user boundary validation on all session data and material actions.
 - **Multi-Layer Rate Limiting**: Dedicated rate limiters for Auth, API, File Uploads, and AI Chat endpoints.
@@ -28,14 +28,14 @@ A full-stack, enterprise-grade **AI-Powered Test Preparation and Document Intell
 - **Security Audit Logger**: Structured logging for unauthorized access attempts, prompt injections, and rate limit violations.
 - **Resource Quotas**: Strict limits on active sessions, documents per session, max PDF file size (15MB), daily AI queries, and daily quiz generation.
 
-### 📚 4. Global Study Material Hub
+### 4. Global Study Material Hub
 - Upload, browse, and filter public study materials.
 - In-page PDF Reader preview using object/iframe containers.
 - Star rating system and material management.
 
 ---
 
-## 🛠️ Tech Stack
+## Tech Stack
 
 ### Backend
 - **Node.js & Express 5**: Core API server architecture.
@@ -51,7 +51,7 @@ A full-stack, enterprise-grade **AI-Powered Test Preparation and Document Intell
 
 ---
 
-## 📋 Environment Variables
+## Environment Variables
 
 Create a `.env` file inside the `Backend/` directory:
 
@@ -84,7 +84,7 @@ VITE_APP_BACKEND_URL=http://localhost:5000
 
 ---
 
-## 🚀 Setup Instructions
+## Setup Instructions
 
 ### 1. Clone the Repository
 ```bash
@@ -110,23 +110,7 @@ npm run dev
 
 ---
 
-## 📡 API Overview
-
-| Method | Endpoint | Description |
-| :--- | :--- | :--- |
-| `POST` | `/api/auth/register` | Register a new user account |
-| `POST` | `/api/auth/login` | Login and acquire JWT access token |
-| `GET` | `/api/materials` | Get all public study materials |
-| `GET` | `/api/materials/:id/pdf` | Stream authenticated PDF preview |
-| `POST` | `/api/study-sessions` | Create a session-isolated study workspace |
-| `POST` | `/api/study-sessions/:id/documents` | Upload PDF for async vector processing (202 Accepted) |
-| `GET` | `/api/study-sessions/:id/status` | Live polling status for document ingestion |
-| `POST` | `/api/study-sessions/:id/chat` | RAG Chat query (`Ask`, `Explain`, `Summarize`, `Test Me`) |
-| `POST` | `/api/study-sessions/:id/quiz` | Generate MCQ practice quiz from session PDFs |
-
----
-
-## 🖼️ Application UI Preview
+## Application UI Preview
 
 ---
 
@@ -142,5 +126,5 @@ npm run dev
 
 ---
 
-## 📄 License
+## License
 This project is licensed under the ISC License.
