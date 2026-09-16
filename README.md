@@ -123,8 +123,13 @@ npm run dev
 ---
 
 <img width="1918" height="966" alt="Upload Material" src="https://github.com/user-attachments/assets/f0f5f0b3-c128-4cca-bd96-6acca2110f94" />
-
+---
+<img width="1880" height="911" alt="image" src="https://github.com/user-attachments/assets/45cea34e-1027-4d80-b244-ae1f63a451ac" />
+---
+<img width="1916" height="907" alt="image" src="https://github.com/user-attachments/assets/701a582b-ad29-42a0-b7b9-9f82fe1155fb" />
 ---
 
-## License
-This project is licensed under the ISC License.
+<img width="1917" height="912" alt="image" src="https://github.com/user-attachments/assets/1f9c224d-8d20-4b97-a18c-a6677f793747" />
+
+
+---
