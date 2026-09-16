@@ -1,88 +1,146 @@
-# Study Material Hub 
+# 🎓 Study Material Hub & AI Test Prep Platform
 
-A full-stack MERN application designed for students to upload, organize, and review academic study materials. 
-
-## Features
-- **Authentication:** Secure user registration and login using JWT.
-- **Material Management:** Upload and manage PDFs/Documents with Cloudinary integration.
-- **Ratings & Reviews:** Users can rate materials and leave feedback.
-- **Responsive Dashboard:** A modern UI built with React and Vite.
+A full-stack, enterprise-grade **AI-Powered Test Preparation and Document Intelligence Platform** built using the MERN stack. Features a session-isolated **Retrieval-Augmented Generation (RAG)** architecture, asynchronous PDF processing pipeline, vector search, interactive AI study room, security hardening, and global study material sharing.
 
 ---
 
-## Tech Stack
+## 🌟 Key Features
+
+### 🧠 1. AI Study Room & RAG Engine
+- **Session-Isolated Vector Ingestion**: Upload PDFs to dedicated study sessions. Documents are asynchronously parsed, page-chunked with SHA-256 deduplication, and indexed into vector embeddings.
+- **Interactive AI Modes**:
+  - **Ask**: Grounded QA answering questions strictly using uploaded study session PDFs.
+  - **Explain**: Detailed conceptual breakdowns of complex topics in uploaded notes.
+  - **Summarize**: High-level executive summaries of session PDFs.
+  - **Test Me**: Interactive Multiple Choice Quiz (MCQ) generation with real-time scoring.
+- **Backend-Derived Citations**: Clickable citation badges linking directly back to original PDF source documents and page numbers.
+
+### ⚡ 2. Asynchronous Document Processing Pipeline
+- **HTTP 202 Accepted Async Workflow**: Uploads return immediately while background jobs extract text via `PDFParse` and generate embeddings via Google Gemini / OpenAI with local fallback.
+- **Cloudinary Basic Auth Proxy**: Bypasses raw resource access restrictions through authenticated backend streaming (`GET /api/materials/:id/pdf`).
+- **Auto-Recovery**: Automatic background re-indexing and retry fallback for failed document processing.
+
+### 🔒 3. Enterprise Security & Quota Hardening
+- **Bcrypt Hashing & JWT Auth**: Secure password hashing with dual Bearer header & URL query token support for PDF previewing.
+- **BOLA / IDOR Defense**: Strict user boundary validation on all session data and material actions.
+- **Multi-Layer Rate Limiting**: Dedicated rate limiters for Auth, API, File Uploads, and AI Chat endpoints.
+- **SSRF Guard**: Strict domain whitelist verification blocking private IP ranges (`127.0.0.1`, `169.254.169.254`, etc.).
+- **Security Audit Logger**: Structured logging for unauthorized access attempts, prompt injections, and rate limit violations.
+- **Resource Quotas**: Strict limits on active sessions, documents per session, max PDF file size (15MB), daily AI queries, and daily quiz generation.
+
+### 📚 4. Global Study Material Hub
+- Upload, browse, and filter public study materials.
+- In-page PDF Reader preview using object/iframe containers.
+- Star rating system and material management.
+
+---
+
+## 🛠️ Tech Stack
 
 ### Backend
-- **Node.js & Express:** Server-side framework.
-- **MongoDB:** Database for storing users, materials, and reviews.
-- **Cloudinary:** Image/File hosting.
-- **JWT:** Secure authentication.
+- **Node.js & Express 5**: Core API server architecture.
+- **MongoDB & Mongoose**: Primary database storing users, sessions, documents, vector chunks, chat history, and quizzes.
+- **Google GenAI SDK (`@google/genai`)**: Pluggable vector embedding generation & RAG chat intelligence.
+- **Cloudinary SDK**: Cloud storage for uploaded PDFs and study documents.
+- **Helmet, Cors, & Zod**: Production security headers, CORS policy enforcement, and request validation.
 
 ### Frontend
-- **React (Vite):** Fast, modern frontend library.
-- **Tailwind CSS:** For styling.
-- **Hooks:** Custom hooks for state management (e.g., `use-toast`).
+- **React 18 & Vite 7**: Modern, fast SPA frontend framework.
+- **Tailwind CSS & Lucide Icons**: Modern responsive UI components with Glassmorphic aesthetic.
+- **Axios & Sonner**: HTTP client with toast notifications.
 
-## Setup Instructions
-### 1. Clone the Repository
-```Bash
-git clone [https://github.com/your-username/study-material-hub.git](https://github.com/your-username/study-material-hub.git)
-cd study-material-hub
-```
-### 2. Backend Setup
-- **Navigate to the backend folder:
+---
 
-```Bash
-cd Backend
-```
-### Install dependencies:
+## 📋 Environment Variables
 
-```Bash
-npm install
-```
-### Create a .env file and add your credentials:
+Create a `.env` file inside the `Backend/` directory:
 
-```Bash
+```env
 PORT=5000
-MONGO_URI=your_mongodb_connection_string
-JWT_SECRET=your_secret_key
-CLOUDINARY_CLOUD_NAME=your_name
-CLOUDINARY_API_KEY=your_key
+NODE_ENV=development
+MONGO_URI=mongodb+srv://<username>:<password>@cluster.mongodb.net/study_hub
+JWT_SECRET=your_jwt_secret_key_here
+
+# Cloudinary Storage
+CLOUDINARY_CLOUD_NAME=your_cloud_name
+CLOUDINARY_API_KEY=your_api_key
 CLOUDINARY_API_SECRET=your_secret
+
+# AI & Vector Embeddings
+GEMINI_API_KEY=your_gemini_api_key_here
+EMBEDDING_PROVIDER=gemini
+EMBEDDING_MODEL=text-embedding-004
+
+# Resource Quotas & Security
+MAX_PDF_SIZE_MB=15
+CORS_ORIGINS=http://localhost:5173,http://localhost:3000
 ```
 
-### Start the server:
+Create a `.env` file inside the `Frontend/` directory:
 
-```Bash
-npm start 
+```env
+VITE_APP_BACKEND_URL=http://localhost:5000
 ```
-### 3. Frontend Setup
-Navigate to the frontend folder:
 
-```Bash
-cd ../Frontend
+---
+
+## 🚀 Setup Instructions
+
+### 1. Clone the Repository
+```bash
+git clone https://github.com/Shriniwas1/Study-Material-Hub.git
+cd Study-Material-Hub
 ```
-Install dependencies:
 
-```Bash
+### 2. Backend Setup
+```bash
+cd Backend
 npm install
-```
-Start the development server:
-
-```Bash
 npm run dev
 ```
-### UI Snippets 
----
+*Backend API will run on `http://localhost:5000`*
 
-<img width="1918" height="962" alt="image" src="https://github.com/user-attachments/assets/d1d20263-385f-4725-801e-332ae7d26e2d" />
-
----
-
-<img width="1918" height="972" alt="image" src="https://github.com/user-attachments/assets/700f61ae-f9ff-42e4-bc58-970cfc9e4aee" />
-
----
-
-<img width="1918" height="966" alt="image" src="https://github.com/user-attachments/assets/f0f5f0b3-c128-4cca-bd96-6acca2110f94" />
+### 3. Frontend Setup
+```bash
+cd ../Frontend
+npm install
+npm run dev
+```
+*Frontend application will run on `http://localhost:5173`*
 
 ---
+
+## 📡 API Overview
+
+| Method | Endpoint | Description |
+| :--- | :--- | :--- |
+| `POST` | `/api/auth/register` | Register a new user account |
+| `POST` | `/api/auth/login` | Login and acquire JWT access token |
+| `GET` | `/api/materials` | Get all public study materials |
+| `GET` | `/api/materials/:id/pdf` | Stream authenticated PDF preview |
+| `POST` | `/api/study-sessions` | Create a session-isolated study workspace |
+| `POST` | `/api/study-sessions/:id/documents` | Upload PDF for async vector processing (202 Accepted) |
+| `GET` | `/api/study-sessions/:id/status` | Live polling status for document ingestion |
+| `POST` | `/api/study-sessions/:id/chat` | RAG Chat query (`Ask`, `Explain`, `Summarize`, `Test Me`) |
+| `POST` | `/api/study-sessions/:id/quiz` | Generate MCQ practice quiz from session PDFs |
+
+---
+
+## 🖼️ Application UI Preview
+
+---
+
+<img width="1918" height="962" alt="Dashboard" src="https://github.com/user-attachments/assets/d1d20263-385f-4725-801e-332ae7d26e2d" />
+
+---
+
+<img width="1918" height="972" alt="Material Viewer" src="https://github.com/user-attachments/assets/700f61ae-f9ff-42e4-bc58-970cfc9e4aee" />
+
+---
+
+<img width="1918" height="966" alt="Upload Material" src="https://github.com/user-attachments/assets/f0f5f0b3-c128-4cca-bd96-6acca2110f94" />
+
+---
+
+## 📄 License
+This project is licensed under the ISC License.
