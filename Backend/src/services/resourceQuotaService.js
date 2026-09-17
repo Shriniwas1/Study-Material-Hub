@@ -3,6 +3,7 @@ import StudySession from "../models/StudySession.js";
 import StudyDocument from "../models/StudyDocument.js";
 import ChatMessage from "../models/ChatMessage.js";
 import QuizAttempt from "../models/QuizAttempt.js";
+import { getQuotaCounter, incrementQuotaCounter, isRedisAvailable } from "../config/redis.js";
 
 export const QUOTA_CONFIG = {
   MAX_STUDY_SESSIONS: parseInt(process.env.MAX_STUDY_SESSIONS || "20", 10),
@@ -14,6 +15,17 @@ export const QUOTA_CONFIG = {
   MAX_TOKEN_CONTEXT: parseInt(process.env.MAX_TOKEN_CONTEXT || "4000", 10),
   MAX_TOP_K: parseInt(process.env.MAX_TOP_K || "5", 10),
   MAX_QUIZ_QUESTIONS: parseInt(process.env.MAX_QUIZ_QUESTIONS || "10", 10)
+};
+
+const getSecondsUntilMidnight = () => {
+  const now = new Date();
+  const midnight = new Date(now);
+  midnight.setHours(24, 0, 0, 0);
+  return Math.max(60, Math.floor((midnight.getTime() - now.getTime()) / 1000));
+};
+
+const getTodayDateStr = () => {
+  return new Date().toISOString().split("T")[0];
 };
 
 export const checkUserSessionQuota = async (userId) => {
@@ -31,6 +43,20 @@ export const checkDocumentQuota = async (userId, studySessionId) => {
 };
 
 export const checkDailyQuestionQuota = async (userId) => {
+  const dateStr = getTodayDateStr();
+  const redisKey = `quota:questions:${userId}:${dateStr}`;
+
+  if (isRedisAvailable()) {
+    const cachedCount = await getQuotaCounter(redisKey);
+    if (cachedCount !== null) {
+      if (cachedCount >= QUOTA_CONFIG.MAX_DAILY_AI_QUESTIONS) {
+        throw new Error(`Quota Exceeded: You have reached your daily limit of ${QUOTA_CONFIG.MAX_DAILY_AI_QUESTIONS} questions.`);
+      }
+      return;
+    }
+  }
+
+  // Fallback to MongoDB count
   const startOfDay = new Date();
   startOfDay.setHours(0, 0, 0, 0);
 
@@ -45,7 +71,27 @@ export const checkDailyQuestionQuota = async (userId) => {
   }
 };
 
+export const incrementDailyQuestionUsage = async (userId) => {
+  const dateStr = getTodayDateStr();
+  const redisKey = `quota:questions:${userId}:${dateStr}`;
+  await incrementQuotaCounter(redisKey, getSecondsUntilMidnight());
+};
+
 export const checkDailyQuizQuota = async (userId) => {
+  const dateStr = getTodayDateStr();
+  const redisKey = `quota:quizzes:${userId}:${dateStr}`;
+
+  if (isRedisAvailable()) {
+    const cachedCount = await getQuotaCounter(redisKey);
+    if (cachedCount !== null) {
+      if (cachedCount >= QUOTA_CONFIG.MAX_DAILY_QUIZZES) {
+        throw new Error(`Quota Exceeded: You have reached your daily limit of ${QUOTA_CONFIG.MAX_DAILY_QUIZZES} quizzes.`);
+      }
+      return;
+    }
+  }
+
+  // Fallback to MongoDB count
   const startOfDay = new Date();
   startOfDay.setHours(0, 0, 0, 0);
 
@@ -57,4 +103,10 @@ export const checkDailyQuizQuota = async (userId) => {
   if (count >= QUOTA_CONFIG.MAX_DAILY_QUIZZES) {
     throw new Error(`Quota Exceeded: You have reached your daily limit of ${QUOTA_CONFIG.MAX_DAILY_QUIZZES} quizzes.`);
   }
+};
+
+export const incrementDailyQuizUsage = async (userId) => {
+  const dateStr = getTodayDateStr();
+  const redisKey = `quota:quizzes:${userId}:${dateStr}`;
+  await incrementQuotaCounter(redisKey, getSecondsUntilMidnight());
 };

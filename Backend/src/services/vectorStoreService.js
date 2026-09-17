@@ -75,21 +75,61 @@ export const searchVectorStore = async ({ userId, studySessionId, queryEmbedding
     return [];
   }
 
-  const queryLower = queryText.toLowerCase();
-  const keywords = queryLower
-    .replace(/[^a-z0-9\s]/g, "")
-    .split(/\s+/)
-    .filter(w => w.length >= 3 && !["what", "when", "where", "which", "with", "from", "that", "this", "about", "explain"].includes(w));
+  const queryClean = queryText.toLowerCase().replace(/[^a-z0-9\s]/g, " ").trim();
+  const stopWords = new Set([
+    "what", "when", "where", "which", "with", "from", "that", "this", "about",
+    "explain", "tell", "describe", "give", "show", "does", "have", "been", "were",
+    "the", "and", "for", "are", "can", "you", "made", "make", "project", "work",
+    "experience", "worked", "overview", "detail", "details", "information", "info",
+    "question", "topic", "mention", "mentioned"
+  ]);
+
+  // Meaningful keywords (length >= 3 and not generic stop words)
+  const allWords = queryClean.split(/\s+/).filter(w => w.length >= 2);
+  const keywords = allWords.filter(w => !stopWords.has(w) && w.length >= 3);
+  const searchTerms = keywords.length > 0 ? keywords : allWords;
 
   const scored = sessionChunks.map(chunk => {
-    let score = cosineSimilarity(queryEmbedding, chunk.embedding);
     const textLower = (chunk.chunkText || "").toLowerCase();
-    
-    // Keyword match boost
-    for (const kw of keywords) {
-      if (textLower.includes(kw)) {
-        score += 0.35;
+    const cosSim = Math.max(0, cosineSimilarity(queryEmbedding, chunk.embedding));
+
+    // Keyword coverage: fraction of unique search terms found in chunk
+    let matchedTerms = 0;
+    let termFrequency = 0;
+
+    for (const term of searchTerms) {
+      if (textLower.includes(term)) {
+        matchedTerms++;
+        // Count occurrences
+        const regex = new RegExp(`\\b${term}`, "g");
+        const matches = textLower.match(regex);
+        if (matches) {
+          termFrequency += matches.length;
+        }
       }
+    }
+
+    const keywordCoverage = searchTerms.length > 0 ? (matchedTerms / searchTerms.length) : 0;
+    const tfScore = Math.min(1, termFrequency / (searchTerms.length * 2 || 1));
+
+    // Exact phrase match bonus if query is 2+ words and found verbatim in chunk
+    let phraseBonus = 0;
+    if (searchTerms.length >= 2) {
+      const phrase = searchTerms.join(" ");
+      if (textLower.includes(phrase)) {
+        phraseBonus = 0.25;
+      }
+    }
+
+    // Hybrid calculation:
+    // If search terms are absent or coverage is under 50% without high semantic similarity, keep score low
+    let finalScore = 0;
+    if (searchTerms.length > 0 && keywordCoverage === 0) {
+      finalScore = cosSim * 0.2;
+    } else if (searchTerms.length > 1 && keywordCoverage < 0.5 && cosSim < 0.35) {
+      finalScore = Math.min(0.25, (cosSim * 0.3) + (keywordCoverage * 0.2));
+    } else {
+      finalScore = (cosSim * 0.4) + (keywordCoverage * 0.4) + (tfScore * 0.2) + phraseBonus;
     }
 
     return {
@@ -99,7 +139,7 @@ export const searchVectorStore = async ({ userId, studySessionId, queryEmbedding
       pageNumber: chunk.pageNumber,
       chunkIndex: chunk.chunkIndex,
       chunkText: chunk.chunkText,
-      score
+      score: Math.min(1.0, finalScore)
     };
   });
 

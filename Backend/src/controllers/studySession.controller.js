@@ -6,6 +6,8 @@ import cloudinary from "../config/cloudinary.js";
 import { processDocumentAsync } from "../services/documentProcessor.js";
 import { validatePdfMagicBytes } from "../services/pdfExtractor.js";
 import { checkUserSessionQuota, checkDocumentQuota, QUOTA_CONFIG } from "../services/resourceQuotaService.js";
+import crypto from "crypto";
+import { checkAndAddDedupHash, delCachePattern } from "../config/redis.js";
 import { logSecurityEvent, SECURITY_EVENTS } from "../services/securityLogger.js";
 
 const getUserId = (req) => req.user?._id?.toString() || req.user?.id?.toString() || req.user?.id;
@@ -95,6 +97,11 @@ export const deleteSession = async (req, res) => {
     await StudyDocument.deleteMany({ studySessionId: session._id, userId });
     await StudySession.findByIdAndDelete(session._id);
 
+    // Invalidate Redis caches for this session
+    delCachePattern(`rag:cache:${session._id}:*`);
+    delCachePattern(`retrieval:cache:${session._id}:*`);
+    delCachePattern(`doc_dedup:${session._id}`);
+
     res.json({ message: "Study session and associated vector documents deleted successfully" });
   } catch (error) {
     res.status(500).json({ error: error.message });
@@ -128,6 +135,32 @@ export const uploadSessionDocument = async (req, res) => {
       return res.status(400).json({ error: "Invalid file type: File is not a valid PDF document." });
     }
 
+    // SHA-256 Deduplication Check
+    const fileContentHash = crypto.createHash("sha256").update(req.file.buffer).digest("hex");
+
+    // 1. O(1) Redis Deduplication Check
+    const dedupCheck = await checkAndAddDedupHash(`doc_dedup:${session._id}`, fileContentHash);
+    if (dedupCheck.exists) {
+      return res.status(400).json({
+        error: "Duplicate document detected: This exact PDF has already been uploaded to this study session."
+      });
+    }
+
+    // 2. MongoDB Fallback Deduplication Check (in case Redis was cold/offline)
+    const existingDoc = await StudyDocument.findOne({
+      studySessionId: session._id,
+      contentHash: fileContentHash
+    });
+    if (existingDoc) {
+      return res.status(400).json({
+        error: "Duplicate document detected: This exact PDF has already been uploaded to this study session."
+      });
+    }
+
+    // Invalidate RAG and retrieval query caches for this session because new material is being added
+    delCachePattern(`rag:cache:${session._id}:*`);
+    delCachePattern(`retrieval:cache:${session._id}:*`);
+
     // Upload to Cloudinary using stream / buffer upload
     const uploadToCloudinary = () => {
       return new Promise((resolve, reject) => {
@@ -157,6 +190,7 @@ export const uploadSessionDocument = async (req, res) => {
       originalName: req.file.originalname,
       fileSize: req.file.size,
       mimeType: req.file.mimetype,
+      contentHash: fileContentHash,
       pdfUrl: cloudRes.secure_url,
       cloudinaryPublicId: cloudRes.public_id,
       status: "PROCESSING"

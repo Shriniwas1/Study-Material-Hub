@@ -5,7 +5,7 @@ import ChatMessage from "../models/ChatMessage.js";
 import QuizAttempt from "../models/QuizAttempt.js";
 import { generateRAGResponse } from "../services/ragService.js";
 import { generateSessionQuiz } from "../services/quizService.js";
-import { checkDailyQuestionQuota, checkDailyQuizQuota } from "../services/resourceQuotaService.js";
+import { checkDailyQuestionQuota, checkDailyQuizQuota, incrementDailyQuestionUsage, incrementDailyQuizUsage } from "../services/resourceQuotaService.js";
 
 const getUserId = (req) => req.user?._id?.toString() || req.user?.id?.toString() || req.user?.id;
 
@@ -22,6 +22,7 @@ export const handleSessionChat = async (req, res) => {
     }
 
     await checkDailyQuestionQuota(userId);
+    await incrementDailyQuestionUsage(userId);
 
     // Get or create ChatSession for this study session
     let chatSession = await ChatSession.findOne({ studySessionId: session._id, userId });
@@ -110,6 +111,7 @@ export const handleGenerateQuiz = async (req, res) => {
     }
 
     await checkDailyQuizQuota(userId);
+    await incrementDailyQuizUsage(userId);
 
     const quiz = await generateSessionQuiz({
       userId,

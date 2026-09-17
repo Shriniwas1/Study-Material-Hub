@@ -8,6 +8,7 @@ import { chunkDocumentPages } from "./chunkingService.js";
 import { generateEmbeddings } from "./embeddingService.js";
 import { isUrlSafeForDownload } from "../middlewares/ssrfGuard.js";
 import { logSecurityEvent, SECURITY_EVENTS } from "./securityLogger.js";
+import { delCachePattern } from "../config/redis.js";
 
 export const processDocumentAsync = async (documentId) => {
   try {
@@ -105,6 +106,10 @@ export const processDocumentAsync = async (documentId) => {
     document.status = "READY";
     document.errorMessage = null;
     await document.save();
+
+    // Invalidate stale RAG and retrieval caches now that new chunks are ready
+    delCachePattern(`rag:cache:${document.studySessionId}:*`);
+    delCachePattern(`retrieval:cache:${document.studySessionId}:*`);
 
     // Update Session status & doc count
     const totalReadyDocs = await StudyDocument.countDocuments({

@@ -1,5 +1,6 @@
 // src/services/embeddingService.js
 import { GoogleGenAI } from "@google/genai";
+import { getCache, setCache } from "../config/redis.js";
 import dotenv from "dotenv";
 dotenv.config();
 
@@ -11,7 +12,7 @@ if (process.env.GEMINI_API_KEY) {
   aiClient = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
 }
 
-// Memory cache for content hashes to prevent duplicate embedding calls
+// In-memory L1 cache
 const embeddingCache = new Map();
 
 /**
@@ -31,8 +32,18 @@ const generateFallbackEmbedding = (text) => {
 };
 
 export const generateEmbedding = async (text, contentHash = null) => {
+  // L1 In-memory cache check
   if (contentHash && embeddingCache.has(contentHash)) {
     return embeddingCache.get(contentHash);
+  }
+
+  // L2 Redis cache check
+  if (contentHash) {
+    const redisCached = await getCache(`emb:cache:${contentHash}`);
+    if (redisCached) {
+      embeddingCache.set(contentHash, redisCached);
+      return redisCached;
+    }
   }
 
   let embedding = null;
@@ -57,6 +68,8 @@ export const generateEmbedding = async (text, contentHash = null) => {
 
   if (contentHash) {
     embeddingCache.set(contentHash, embedding);
+    // Cache in Redis for 7 days
+    await setCache(`emb:cache:${contentHash}`, embedding, 86400 * 7);
   }
 
   return embedding;

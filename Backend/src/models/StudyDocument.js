@@ -19,15 +19,17 @@ const studyDocumentSchema = new mongoose.Schema(
       default: "UPLOADED"
     },
     errorMessage: { type: String, default: null },
-    processingVersion: { type: String, default: "v1" },
+    contentHash: { type: String, index: true },
+    processingVersion: { type: String, default: "v2" },
     embeddingModel: { type: String, default: "text-embedding-004" },
-    chunkSize: { type: Number, default: 800 },
-    chunkOverlap: { type: Number, default: 100 },
+    chunkSize: { type: Number, default: 250 },
+    chunkOverlap: { type: Number, default: 40 },
     createdAt: { type: Date, default: Date.now }
   },
   { timestamps: true }
 );
 
 studyDocumentSchema.index({ userId: 1, studySessionId: 1 });
+studyDocumentSchema.index({ studySessionId: 1, contentHash: 1 });
 
 export default mongoose.model("StudyDocument", studyDocumentSchema);
