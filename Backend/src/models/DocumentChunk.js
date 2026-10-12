@@ -11,6 +11,7 @@ const documentChunkSchema = new mongoose.Schema(
     chunkIndex: { type: Number, required: true },
     chunkText: { type: String, required: true },
     embedding: { type: [Number], required: true },
+    embeddingIsFallback: { type: Boolean, default: false, index: true },
     contentHash: { type: String, index: true },
     tokenCount: { type: Number, default: 0 },
     processingVersion: { type: String, default: "v1" },

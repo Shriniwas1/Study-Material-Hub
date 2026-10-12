@@ -16,7 +16,13 @@ export const retrieveSessionContext = async ({ userId, studySessionId, queryText
     return cached;
   }
 
-  const queryEmbedding = await generateEmbedding(queryText);
+  const { embedding: queryEmbedding, isFallback: queryIsFallback } = await generateEmbedding(queryText);
+  if (queryIsFallback) {
+    console.warn(
+      "⚠️ [RETRIEVAL] Query was embedded with a NON-SEMANTIC fallback vector; " +
+      "vector similarity results are unreliable and retrieval is leaning on keyword matching."
+    );
+  }
 
   const rawResults = await searchVectorStore({
     userId,

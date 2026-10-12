@@ -5,7 +5,7 @@ import StudySession from "../models/StudySession.js";
 import DocumentChunk from "../models/DocumentChunk.js";
 import { extractTextFromPdfBuffer } from "./pdfExtractor.js";
 import { chunkDocumentPages } from "./chunkingService.js";
-import { generateEmbeddings } from "./embeddingService.js";
+import { generateEmbeddings, FALLBACK_EMBEDDING_MODEL } from "./embeddingService.js";
 import { isUrlSafeForDownload } from "../middlewares/ssrfGuard.js";
 import { logSecurityEvent, SECURITY_EVENTS } from "./securityLogger.js";
 import { delCachePattern } from "../config/redis.js";
@@ -79,7 +79,14 @@ export const processDocumentAsync = async (documentId) => {
     // 3. Generate Embeddings
     const chunkTexts = rawChunks.map(c => c.chunkText);
     const contentHashes = rawChunks.map(c => c.contentHash);
-    const embeddings = await generateEmbeddings(chunkTexts, contentHashes);
+    const { embeddings, isFallback } = await generateEmbeddings(chunkTexts, contentHashes);
+
+    if (isFallback) {
+      console.warn(
+        `⚠️ [DOCUMENT PROCESSOR] Document ${document._id} was embedded with NON-SEMANTIC fallback vectors. ` +
+        `Semantic vector search will not work for this document until it is re-embedded with a real model.`
+      );
+    }
 
     // 4. Idempotent Vector Store Insertion
     // Remove old chunks for this document if reprocessing
@@ -94,6 +101,7 @@ export const processDocumentAsync = async (documentId) => {
       chunkIndex: chunk.chunkIndex,
       chunkText: chunk.chunkText,
       embedding: embeddings[index],
+      embeddingIsFallback: isFallback,
       contentHash: chunk.contentHash,
       tokenCount: chunk.tokenCount,
       processingVersion: document.processingVersion
@@ -103,6 +111,9 @@ export const processDocumentAsync = async (documentId) => {
 
     // 5. Update Status
     document.chunkCount = chunkDocs.length;
+    document.embeddingModel = isFallback
+      ? FALLBACK_EMBEDDING_MODEL
+      : (process.env.EMBEDDING_MODEL || "text-embedding-004");
     document.status = "READY";
     document.errorMessage = null;
     await document.save();
